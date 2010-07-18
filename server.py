@@ -10,7 +10,7 @@ def run(server_class=BaseHTTPServer.HTTPServer,
 
 class handler(BaseHTTPServer.BaseHTTPRequestHandler):
 	def do_GET(self):
-		key = self.path[1:]
+		key = self.path
 		value = data.get(key)
 		if value != None:
 			self.send_response(200)
@@ -21,7 +21,7 @@ class handler(BaseHTTPServer.BaseHTTPRequestHandler):
 			self.send_response(204)
 			
 	def do_POST(self):
-		key = self.path[1:]
+		key = self.path
 		length = int(self.headers['Content-Length'])
 		value = self.rfile.read(length)
 		data[key] = value
