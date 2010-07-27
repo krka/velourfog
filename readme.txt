@@ -62,17 +62,24 @@ lexicographical string comparison.)
 
 Iterations
 ==========
-Iteration 1 is implemented as an in memory python dictionary without any
+* Iteration 1 is implemented as an in memory python dictionary without any
 clustering or persistance.
 
+Future iterations
+-----------------
+* Iteration 2: Let multiple nodes be aware of each other and propagate changes.
+* Iteration 3: Let newly added nodes be able to query for the complete state
+before accepting external requests.
 
 Usage
 =====
 
 Starting the server
 -------------------
-python server.py
-The server will listen for requests on port 8000
+python server.py [port] <otherhost:port>
+The server will listen for requests on the given port.
+If there's another known node online, you can add it on the commandline to
+start clustering with it.
 
 Stopping the server
 -------------------
