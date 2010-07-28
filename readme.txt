@@ -77,7 +77,8 @@ before accepting external requests.
 * Iteration 5: Implement the partitioning strategy.
 * Iteration 6: Let the controller persist its state to disk to survive shutdowns.
 * Iteration 7: Persist storage data to disk for robustness.
-
+* Iteration 8: Let frontend nodes function more eventdriven to increase throughput.
+ 
 Usage
 =====
 
