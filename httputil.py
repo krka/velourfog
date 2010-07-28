@@ -60,10 +60,13 @@ class handler(BaseHTTPServer.BaseHTTPRequestHandler):
 		
 	def do_POST(self):
 		self.do_ALL()
-			
-def serve(port, handlers):
+	
+	def log_request(self, code='-', size='-'):
+		pass
+		
+def createserver(port, handlers):
 	server_address = ('', port)
 	httpd = BaseHTTPServer.HTTPServer(server_address, handler)
-	httpd.handlers = handlers
-	httpd.serve_forever()
+	httpd.handlers = handlers	
+	return httpd
 

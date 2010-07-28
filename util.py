@@ -11,8 +11,8 @@ def host(s):
 def port(s):
 	return int(s.split(":")[1])
 	
-def shuffle(dict)
-	copy = list(dict.keys())
+def shuffle(d):
+	copy = list(d.keys())
 	random.shuffle(copy)
 	return copy
 	

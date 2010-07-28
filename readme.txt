@@ -64,12 +64,19 @@ Iterations
 ==========
 * Iteration 1 is implemented as an in memory python dictionary without any
 clustering or persistance.
+* Iteration 2: Make a layered solution with stateless frontends that
+sends get-requests to only one storage node, and sends set-requests to all
+storage nodes. Use a controller that notifies frontends when storage nodes are
+added.
 
 Future iterations
 -----------------
-* Iteration 2: Let multiple nodes be aware of each other and propagate changes.
-* Iteration 3: Let newly added nodes be able to query for the complete state
+* Iteration 3: Let frontends notify controller of dead storage nodes, and remove them.
+* Iteration 4: Let newly added storage nodes be able to query for the complete state
 before accepting external requests.
+* Iteration 5: Implement the partitioning strategy.
+* Iteration 6: Let the controller persist its state to disk to survive shutdowns.
+* Iteration 7: Persist storage data to disk for robustness.
 
 Usage
 =====
@@ -101,4 +108,34 @@ Set value for a key
 Send a POST request to the server with the key as the url,
 and the value as the data
 Example using curl: curl -d VALUE localhost:8000/KEY
+
+
+
+Overall structure
+=================
+
+Client get     Client set      Client get
+  |               |               |
+Frontend 1     Frontend 2      Frontend 3             Controller
+  |          /    |    \          |                   (connects to all frontends and all nodes)
+Node 1         Node 2          Node 3
+
+Clients only communicate with frontends,
+and do so by sending get- / set-requests.
+
+If it's a get-request, the frontend node
+finds an appropriate storage node (randomly)
+and forwards the request, and returns the answer.
+
+If it's a set-request, the frontend node 
+adds a timestamp to the request and forwards
+it to all nodes (within the same partition (when that's implemented)).
+
+All frontends and nodes also report to a controller,
+which keeps tracks of available nodes and notifies frontends
+when a new node becomes available.
+
+Note that this means that the system scales poorly if the traffic pattern is
+multiple set-requests for keys within a single partition, but it
+scales good if most of the traffic is get-requests.
 

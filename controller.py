@@ -1,5 +1,6 @@
 import httputil
 import sys
+import socket
 
 if (len(sys.argv) <= 1):
 	print("Usage: " + sys.argv[0] + " <connect port>")
@@ -9,10 +10,9 @@ port = int(sys.argv[1])
 nodes = {}
 frontendnodes = {}
 
-def notify(newhost, hosts):
-	for host in hosts:
-		if host != newhost:
-			httputil.request(host, "/addnode?host=" + newhost)
+def notify(newhost, receivers):
+	for receiver in receivers:
+		httputil.request(receiver, "/addnode?host=" + newhost)
 
 def addnode(request):
 	host = request.args.get("host")
@@ -21,12 +21,9 @@ def addnode(request):
 		
 	if nodes.get(host) == None:
 		nodes[host] = True	
-		notify(host, nodes.keys())
 		notify(host, frontendnodes.keys())
 		
-		
-	nodelist = "\n".join(nodes.keys())
-	return 200, nodelist
+	return 200, "Ok"
 
 def addfrontend(request):
 	host = request.args.get("host")
@@ -37,8 +34,14 @@ def addfrontend(request):
 	nodelist = "\n".join(nodes.keys())
 	return 200, nodelist
 
-httputil.serve(port, {
-	"addnode" : addnode,
-	"addfrontend" : addfrontend,
-})
+try:
+	server = httputil.createserver(port, {
+		"addnode" : addnode,
+		"addfrontend" : addfrontend,
+	})
+except socket.error:
+	print("Could not bind on port: " + str(port))
+else:
+	print("Controller serving on port: " + str(port))
+	server.serve_forever()
 

@@ -5,11 +5,11 @@ import sys
 import util
 
 if (len(sys.argv) <= 2):
-	print("Usage: " + sys.argv[0] + " <self-host:port> <controller-host:port>")
+	print("Usage: " + sys.argv[0] + " <controller-host:port> <self-host:port>")
 	sys.exit(1)
 
-selfhost = sys.argv[1]
-controller = sys.argv[2]
+controller = sys.argv[1]
+selfhost = sys.argv[2]
 
 class peer:
 	def __init__(self, type, selfhost, controller):
@@ -25,8 +25,10 @@ class peer:
 		data = response.read()
 		lines = data.split("\n")
 		for line in lines:
-			self.nodes[line] = True
-p	def gethandlers(self):
+			if len(line) > 0:
+				self.nodes[line] = True
+			
+	def gethandlers(self):
 		return {
 			"addnode" : self.addnode_handler,
 		}
