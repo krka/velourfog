@@ -11,8 +11,13 @@ def host(s):
 def port(s):
 	return int(s.split(":")[1])
 	
-def shuffle(d):
-	copy = list(d.keys())
-	random.shuffle(copy)
-	return copy
-	
+def numpartitions(digits):
+	return 2**(4 * digits)
+
+def getdigits(N, K):	
+	digits=1
+	while numpartitions(digits) < N/K:
+		digits += 1
+	return digits
+
+

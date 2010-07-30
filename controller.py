@@ -1,18 +1,22 @@
 import httputil
 import sys
 import socket
+import util
 
-if (len(sys.argv) <= 1):
-	print("Usage: " + sys.argv[0] + " <connect port>")
+if (len(sys.argv) <= 3):
+	print("Usage: " + sys.argv[0] + " <connect port> <#nodes> <redundancy>")
 	sys.exit(1)
 port = int(sys.argv[1])
+N = int(sys.argv[2])
+K = int(sys.argv[3])
 
+nodeindex = {"value" : 0}
 nodes = {}
 frontendnodes = {}
 
-def notify(newhost, receivers):
+def notify(node, index, receivers):
 	for receiver in receivers:
-		httputil.request(receiver, "/addnode?host=" + newhost)
+		httputil.request(receiver, "/addnode?host=" + node + "&index=" + str(index))
 
 def addnode(request):
 	host = request.args.get("host")
@@ -20,8 +24,12 @@ def addnode(request):
 		return 501, "Missing parameter: host"
 		
 	if nodes.get(host) == None:
-		nodes[host] = True	
-		notify(host, frontendnodes.keys())
+		# workaround to pythons lack of lexical scoping
+		index = nodeindex["value"]
+		nodeindex["value"] = index + 1	
+
+		nodes[host] = index
+		notify(host, index, frontendnodes.keys())
 		
 	return 200, "Ok"
 
@@ -31,7 +39,9 @@ def addfrontend(request):
 		return 501, "Missing parameter: host"
 		
 	frontendnodes[host] = True
-	nodelist = "\n".join(nodes.keys())
+	nodelist = str(N) + "\n" + str(K) + "\n"
+	for node, index in nodes.iteritems():
+		nodelist += node + "," + str(index) + "\n"
 	return 200, nodelist
 
 try:

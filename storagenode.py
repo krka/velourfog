@@ -62,12 +62,10 @@ peer = peerutil.getpeer("node")
 
 try:
 	server = httputil.createserver(peer.port(), 
-	util.merge({
+	{
 		"get" : get,
 		"set" : set,
-	},
-	peer.gethandlers()
-	)
+	}
 	)
 except socket.error:
 	print("Could not bind on port: " + str(peer.port()))

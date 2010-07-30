@@ -3,6 +3,7 @@ import httputil
 import httplib
 import sys
 import util
+import hashlib
 
 if (len(sys.argv) <= 2):
 	print("Usage: " + sys.argv[0] + " <controller-host:port> <self-host:port>")
@@ -17,16 +18,17 @@ class peer:
 		self.selfhost = selfhost
 		self.controller = controller
 		self.nodes = {}
-				
+	
+	def handle_connect(self, lines):
+		pass
+			
 	def addself(self):
 		connection = httplib.HTTPConnection(util.host(self.controller), util.port(controller), True, 10)
 		connection.request("GET", "/add" + self.type + "?host=" + self.selfhost)
 		response = connection.getresponse()
 		data = response.read()
 		lines = data.split("\n")
-		for line in lines:
-			if len(line) > 0:
-				self.nodes[line] = True
+		self.handle_connect(lines)
 			
 	def gethandlers(self):
 		return {
@@ -41,9 +43,18 @@ class peer:
 		if host == None:
 			return 501, "Missing parameter: host"
 		
-		self.nodes[host] = True
+		index = request.args.get("index")
+		if index == None:
+			return 501, "Missing parameter: index"
+		
+		index = int(index)
+		self.nodes[index] = host
 		return 200, "Ok\n"
+		
+	def partition(self, key):
+		keyhash = hashlib.sha1(key).hexdigest()
+		return int(keyhash[0:self.digits], 16)
 	
-def getpeer(type):
-	return peer(type, selfhost, controller)
+def getpeer(type, clazz = peer):
+	return clazz(type, selfhost, controller)
 

@@ -1,12 +1,13 @@
 #!/bin/bash
+NUM_FRONTEND=10
+NUM_STORAGE=10
+REDUNDANCY=3
 CONTROLLER_PORT=12000
 STORAGE_PORT=12500
 FRONTEND_PORT=12080
-NUM_FRONTEND=10
-NUM_STORAGE=10
 
-echo Starting controller on port $CONTROLLER_PORT
-python controller.py $CONTROLLER_PORT &
+echo Starting controller on port $CONTROLLER_PORT, nodes=$NUM_STORAGE, redundancy=$REDUNDANCY
+python controller.py $CONTROLLER_PORT $NUM_STORAGE $REDUNDANCY &
 
 sleep 1
 

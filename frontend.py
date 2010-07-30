@@ -7,7 +7,10 @@ import time
 import hashlib
 import socket
 
+debug = True
+
 def getdata(nodes, key):
+	if debug: print("Requesting from nodes: " + str(nodes))
 	for node in nodes:
 		try:
 			data = httputil.request(node, "/get?key=" + key)
@@ -17,6 +20,7 @@ def getdata(nodes, key):
 	return None
 
 def setdata(nodes, key, value, t):
+	if debug: print("Setting value on nodes: " + str(nodes))
 	data = None
 	for node in nodes:
 		try:
@@ -30,12 +34,15 @@ def get(request):
 	key = request.args.get("key")
 	if key == None:
 		return 501, "No key provided\n"
-
-	#preparing for partitioning
-	#keyhash = hashlib.sha1(key)
-	#print(keyhash.hexdigest())
-	
-	data = getdata(util.shuffle(peer.nodes), key)
+		
+	p = peer.partition(key)
+	if debug: print("Got get-request for key: " + key + " (partition: " + str(p) + ")")
+	list = []
+	for i in range(0, peer.K):
+		list.append(peer.nodes[(i + p*peer.K) % peer.N])
+		
+	random.shuffle(list)
+	data = getdata(list, key)
 		
 	return 200, data + "\n"
 
@@ -51,13 +58,37 @@ def set(request):
 	if value == None:
 		return 501, "No value provided\n"
 
-	reply = setdata(peer.nodes, key, value, t)
+	p = peer.partition(key)
+	if debug: print("Got set-request for key: " + key + " (partition: " + str(p) + ")")
+	list = []
+	for i in range(0, peer.K):
+		list.append(peer.nodes[(i + p*peer.K) % peer.N])
+
+	reply = setdata(list, key, value, t)
 	if reply == None:
 		return 501, "internal error\n"
 			
 	return 200, reply + "\n"
 
-peer = peerutil.getpeer("frontend")
+class frontend(peerutil.peer):
+	def handle_connect(self, lines):
+		self.N = int(lines.pop(0))
+		self.K = int(lines.pop(0))
+
+		self.digits = util.getdigits(self.N, self.K)
+		self.P = util.numpartitions(self.digits)
+
+		#if debug: print("Frontend connected: N=" + str(self.N) + ", K=" + str(self.K))
+	
+		for line in lines:
+			if len(line) > 0:
+				node, index = line.split(",")
+				index = int(index)
+				self.nodes[index] = node
+				
+		#if debug: print("Nodes: " + str(self.nodes))
+	
+peer = peerutil.getpeer("frontend", frontend)
 
 try:
 	server = httputil.createserver(peer.port(), 
