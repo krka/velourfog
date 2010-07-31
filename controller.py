@@ -10,7 +10,8 @@ port = int(sys.argv[1])
 N = int(sys.argv[2])
 K = int(sys.argv[3])
 
-nodeindex = {"value" : 0}
+global nodeindex
+nodeindex = 0
 nodes = {}
 frontendnodes = {}
 
@@ -24,9 +25,9 @@ def addnode(request):
 		return 501, "Missing parameter: host"
 		
 	if nodes.get(host) == None:
-		# workaround to pythons lack of lexical scoping
-		index = nodeindex["value"]
-		nodeindex["value"] = index + 1	
+		global nodeindex
+		index = nodeindex
+		nodeindex = index + 1	
 
 		nodes[host] = index
 		notify(host, index, frontendnodes.keys())

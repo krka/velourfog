@@ -36,9 +36,27 @@ the hash value mod N, where N is the number of partitions, and then forward the
 query to a random node in that cluster. (Either with a manual selection of
 node or by using a load balancer.)
 
+For simplicity, I let the number of partitions be on the form 2**(4*N) where N
+is an integer >= 1. This reduces the mod-operation on the key hash to picking
+the last N hexdigits of the hash. (In the implementation, it actually takes
+the first N hexdigits, but it doesn't really matter anyway.)
+
 A nice property of this setup is that frontend nodes can be added and removed
 at any time, and since they're stateless it's easy to scale by simply adding
 more of them.
+
+Redundancy
+----------
+I chose to store each key-value pair on K nodes, where K is configurable.
+This means that a frontend that gets a get-request can randomly pick one of K
+nodes to ask for the value. However, for a set-request the frontend-node needs
+to notify all K nodes of the new value.
+This is useful for several reasons. First of all it increases the scalability
+if the traffic pattern has more get-requests than set-requests. If
+set-requests are numerous enough, K could be lowered for better performance.
+If backup and recovery strategies had been implemented, keeping K atleast at
+2 or 3 would keep the system more robust.
+
 
 Persistant storage
 ------------------
@@ -68,22 +86,22 @@ clustering or persistance.
 sends get-requests to only one storage node, and sends set-requests to all
 storage nodes. Use a controller that notifies frontends when storage nodes are
 added.
+* Iteration 3: Implement the partitioning strategy.
 
 Future iterations
 -----------------
-* Iteration 3: Let frontends notify controller of dead storage nodes, and remove them.
-* Iteration 4: Let newly added storage nodes be able to query for the complete state
+* Iteration 4: Let frontends notify controller of dead storage nodes, and remove them.
+* Iteration 5: Let newly added storage nodes be able to query for the complete state
 before accepting external requests.
-* Iteration 5: Implement the partitioning strategy.
 * Iteration 6: Let the controller persist its state to disk to survive shutdowns.
 * Iteration 7: Persist storage data to disk for robustness.
-* Iteration 8: Let frontend nodes function more eventdriven to increase throughput.
+* Iteration 8: Let frontend nodes function more event driven to increase throughput.
  
 Usage
 =====
 
-Starting the server
--------------------
+Starting the cluster
+--------------------
 python server.py [port] <otherhost:port>
 The server will listen for requests on the given port.
 If there's another known node online, you can add it on the commandline to
@@ -91,12 +109,12 @@ start clustering with it.
 
 Stopping the server
 -------------------
-Send a regular kill signal to the server process
+Send a regular kill signal to all processes related to the cluster.
 
 Retrieve value for a key
 ------------------------
 Send a GET request to the server with the key as the url.
-Example using curl: curl localhost:8000/KEY
+Example using curl: curl localhost:8000/get/?key=KEY
 
 Return code 200 signifies that the key existed.
 The value follows in the data.
