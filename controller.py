@@ -10,7 +10,6 @@ port = int(sys.argv[1])
 N = int(sys.argv[2])
 K = int(sys.argv[3])
 
-global nodeindex
 nodeindex = 0
 nodes = {}
 frontendnodes = {}
